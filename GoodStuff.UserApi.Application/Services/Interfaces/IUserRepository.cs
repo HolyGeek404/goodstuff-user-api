@@ -2,7 +2,7 @@
 
 namespace GoodStuff.UserApi.Application.Services.Interfaces;
 
-public interface IUserDao
+public interface IUserRepository
 {
     Task SignUpAsync(Users user);
     Task<Users?> GetUserByEmailAsync(string email);

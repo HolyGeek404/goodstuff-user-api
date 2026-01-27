@@ -22,23 +22,33 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
     public async Task<IActionResult> SignUp([FromBody] SignUpCommand signUpCommand)
     {
         Logs.LogCalledSignupNameByUnknown(logger, nameof(SignUp), User.FindFirst("appid")?.Value ?? "Unknown");
-
-        var result = await mediator.Send(signUpCommand);
-        if (result)
+        if (!ModelState.IsValid)
         {
-            Logs.LogSuccessfullyRegisteredNewUserEmailCalledByUnknown(logger, signUpCommand.Email,
-                User.FindFirst("appid")?.Value ?? "Unknown");
-            var userModel = new UserModel
+            return BadRequest(ModelState);
+        }
+        
+        try
+        {
+            var result = await mediator.Send(signUpCommand);
+            if (result)
             {
-                Email = signUpCommand.Email,
-                Name = signUpCommand.Name,
-                Surname = signUpCommand.Surname
-            };
-            return CreatedAtAction(nameof(SignIn), new { email = signUpCommand.Email }, userModel);
+                Logs.LogSuccessfullyRegisteredNewUserEmailCalledByUnknown(logger, signUpCommand.Email, User.FindFirst("appid")?.Value ?? "Unknown");
+                var userModel = new UserModel
+                {
+                    Email = signUpCommand.Email,
+                    Name = signUpCommand.Name,
+                    Surname = signUpCommand.Surname
+                };
+                return CreatedAtAction(nameof(SignIn), new { email = signUpCommand.Email }, userModel);
+            }
+        }
+        catch (Exception e)
+        {
+            Logs.LogAnErrorOccurredWhileSigningUp(logger, e);
+            return StatusCode(500, "An error occurred while signing up.");
         }
 
-        Logs.LogCouldNotRegisterUserEmailCalledByUnknown(logger, signUpCommand.Email,
-            User.FindFirst("appid")?.Value ?? "Unknown");
+        Logs.LogCouldNotRegisterUserEmailCalledByUnknown(logger, signUpCommand.Email, User.FindFirst("appid")?.Value ?? "Unknown");
         return BadRequest();
     }
 

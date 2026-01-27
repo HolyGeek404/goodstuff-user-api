@@ -23,7 +23,7 @@ public static class ServiceCollectionExtensions
     {
         public void AddServices()
         {
-            services.AddScoped<IUserDao, UserDao>();
+            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IGuidProvider, GuidProvider>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPasswordService, PasswordService>();

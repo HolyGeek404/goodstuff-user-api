@@ -1,11 +1,12 @@
-﻿using MediatR;
+﻿using System.ComponentModel.DataAnnotations;
+using MediatR;
 
 namespace GoodStuff.UserApi.Application.Features.User.Commands.SignUp;
 
 public record SignUpCommand : IRequest<bool>
 {
-    public string Name { get; init; }
-    public string Surname { get; init; }
-    public string Password { get; init; }
-    public string Email { get; init; }
+   [Required] public required string Name { get; init; }
+   [Required] public required string Surname { get; init; }
+   [Required] public required string Password { get; init; }
+   [Required] public required string Email { get; init; }
 }

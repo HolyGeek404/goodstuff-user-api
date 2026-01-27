@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GoodStuff.UserApi.Infrastructure.DataAccess;
 
-public class UserDao(GoodStuffContext context, ILogger<UserDao> logger) : IUserDao
+public class UserRepository(GoodStuffContext context, ILogger<UserRepository> logger) : IUserRepository
 {
     public async Task SignUpAsync(Users user)
     {

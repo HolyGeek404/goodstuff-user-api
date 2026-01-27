@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace GoodStuff.UserApi.Application.Services;
 
 public class UserService(
-    IUserDao userDao,
+    IUserRepository userRepository,
     IEmailNotificationFunctionClient emailNotificationFunctionClient,
     IPasswordService passwordService,
     IGuidProvider guidProvider,
@@ -18,7 +18,7 @@ public class UserService(
         {
             Logs.LogStartingSignupForEmailEmail(logger, model.Email);
 
-            var existingUser = await userDao.GetUserByEmailAsync(model.Email);
+            var existingUser = await userRepository.GetUserByEmailAsync(model.Email);
 
             if (existingUser != null)
             {
@@ -39,7 +39,7 @@ public class UserService(
                 ActivationKey = activationKey
             };
 
-            await userDao.SignUpAsync(user);
+            await userRepository.SignUpAsync(user);
 
             Logs.LogNewUserCreatedEmailEmailActivationKey(logger, user.Email, user.ActivationKey);
 
@@ -62,7 +62,7 @@ public class UserService(
         {
             Logs.LogAttemptingSigninForEmailEmail(logger, email);
 
-            var user = await userDao.GetUserByEmailAsync(email);
+            var user = await userRepository.GetUserByEmailAsync(email);
 
             if (user != null && passwordService.VerifyPassword(password, user.Password))
             {
@@ -91,7 +91,7 @@ public class UserService(
         try
         {
             Logs.LogFetchingUserByEmailEmail(logger, email);
-            return await userDao.GetUserByEmailAsync(email);
+            return await userRepository.GetUserByEmailAsync(email);
         }
         catch (Exception ex)
         {
@@ -106,7 +106,7 @@ public class UserService(
         {
             Logs.LogAttemptingToActivateUserEmailWithKeyKey(logger, email, providedKey);
 
-            var result = await userDao.ActivateUserAsync(email, providedKey);
+            var result = await userRepository.ActivateUserAsync(email, providedKey);
 
             if (result)
                 Logs.LogUserEmailSuccessfullyActivated(logger, email);
