@@ -1,6 +1,5 @@
-﻿using GoodStuff.UserApi.Application.Features.User.Commands.SignUp;
-using GoodStuff.UserApi.Application.Services.Interfaces;
-using GoodStuff.UserApi.Domain.Models.User;
+﻿using GoodStuff.UserApi.Application.Services.Interfaces;
+using GoodStuff.UserApi.Domain.Entities;
 using Microsoft.Extensions.Logging;
 
 namespace GoodStuff.UserApi.Application.Services;
@@ -12,51 +11,39 @@ public class UserService(
     IGuidProvider guidProvider,
     ILogger<UserService> logger) : IUserService
 {
-    public async Task<bool> SignUpAsync(SignUpCommand model)
+    public async Task<bool> SignUpAsync(User user)
     {
         try
         {
-            Logs.LogStartingSignupForEmailEmail(logger, model.Email);
+            Logs.LogStartingSignupForEmailEmail(logger, user.Email.Value);
 
-            var existingUser = await userRepository.GetUserByEmailAsync(model.Email);
+            var existingUser = await userRepository.GetUserByEmailAsync(user.Email.Value);
 
             if (existingUser != null)
             {
-                Logs.LogUserWithEmailEmailAlreadyExists(logger, model.Email);
+                Logs.LogUserWithEmailEmailAlreadyExists(logger, user.Email.Value);
                 return false;
             }
 
             var activationKey = guidProvider.Get();
-
-            var user = new Users
-            {
-                Name = model.Name,
-                Surname = model.Surname,
-                Email = model.Email,
-                Password = passwordService.HashPassword(model.Password),
-                CreatedAt = DateTime.UtcNow,
-                IsActive = false,
-                ActivationKey = activationKey
-            };
+            user.SetActivationKey(activationKey);
 
             await userRepository.SignUpAsync(user);
+            Logs.LogNewUserCreatedEmailEmailActivationKey(logger, user.Email.Value, user.Token!.Value);
 
-            Logs.LogNewUserCreatedEmailEmailActivationKey(logger, user.Email, user.ActivationKey);
-
-            await emailNotificationFunctionClient.SendVerificationEmail(user.Email, activationKey);
-
-            Logs.LogVerificationEmailSentToEmail(logger, user.Email);
+            await emailNotificationFunctionClient.SendVerificationEmail(user.Email.Value, activationKey);
+            Logs.LogVerificationEmailSentToEmail(logger, user.Email.Value);
 
             return true;
         }
         catch (Exception ex)
         {
-            Logs.LogErrorOccurredDuringSignupForEmail(logger, ex, model.Email);
+            Logs.LogErrorOccurredDuringSignupForEmail(logger, ex, user.Email.Value);
             throw;
         }
     }
 
-    public async Task<Users?> SignInAsync(string email, string password)
+    public async Task<User?> SignInAsync(string email, string password)
     {
         try
         {
@@ -64,7 +51,7 @@ public class UserService(
 
             var user = await userRepository.GetUserByEmailAsync(email);
 
-            if (user != null && passwordService.VerifyPassword(password, user.Password))
+            if (user != null && passwordService.VerifyPassword(password, user.Password.Value))
             {
                 Logs.LogUserEmailSuccessfullySignedIn(logger, email);
                 return user;
@@ -86,7 +73,7 @@ public class UserService(
         }
     }
 
-    public async Task<Users?> GetUserByEmailAsync(string email)
+    public async Task<User?> GetUserByEmailAsync(string email)
     {
         try
         {

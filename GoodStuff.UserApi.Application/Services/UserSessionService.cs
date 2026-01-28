@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using GoodStuff.UserApi.Application.Services.Interfaces;
+using GoodStuff.UserApi.Domain.Entities;
 using GoodStuff.UserApi.Domain.Models.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
@@ -14,7 +15,7 @@ public class UserSessionService(
 {
     private const int SessionTimeoutMinutes = 30;
 
-    public string CreateSession(Users user)
+    public string CreateSession(User user)
     {
         try
         {

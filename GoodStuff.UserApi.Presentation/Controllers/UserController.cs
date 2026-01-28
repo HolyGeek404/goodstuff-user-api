@@ -5,6 +5,7 @@ using GoodStuff.UserApi.Application.Features.User.Queries.SignIn;
 using GoodStuff.UserApi.Application.Services;
 using GoodStuff.UserApi.Application.Services.Interfaces;
 using GoodStuff.UserApi.Domain.Models.User;
+using GoodStuff.UserApi.Domain.ValueObjects;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,11 +34,11 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
             if (result)
             {
                 Logs.LogSuccessfullyRegisteredNewUserEmailCalledByUnknown(logger, signUpCommand.Email, User.FindFirst("appid")?.Value ?? "Unknown");
-                var userModel = new UserModel
+                var userModel = new Session
                 {
-                    Email = signUpCommand.Email,
-                    Name = signUpCommand.Name,
-                    Surname = signUpCommand.Surname
+                    Email = Email.Create(signUpCommand.Email),
+                    Name = Name.Create(signUpCommand.Name),
+                    Surname = Name.Create(signUpCommand.Surname),
                 };
                 return CreatedAtAction(nameof(SignIn), new { email = signUpCommand.Email }, userModel);
             }
@@ -70,12 +71,12 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
         if (user == null) return Unauthorized();
 
         var sessionId = sessionService.CreateSession(user);
-        var userModel = new UserModel
+        var userModel = new Session
         {
             Email = user.Email,
             Name = user.Name,
             Surname = user.Surname,
-            SessionId = sessionId
+            Id = sessionId
         };
 
         Logs.LogSuccessfullySignedInUserEmailCalledSignupNameByUnknown(logger, signInQuery.Email, nameof(SignUp),

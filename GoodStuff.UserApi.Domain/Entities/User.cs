@@ -4,13 +4,49 @@ namespace GoodStuff.UserApi.Domain.Entities;
 
 public class User
 {
-    public required int Id { get; set; }
-    public required Name Name { get; set; }
-    public required Name Surname { get; set; }
-    public required Email Email { get; set; }
-    public required Password Password { get; set; }
-    public required DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
-    public required bool IsActive { get; set; }
-    public Guid? ActivationKey { get; set; }
+    public int Id { get; private set; }
+    public Name Name { get; private set; }
+    public Name Surname { get; private set; }
+    public Email Email { get; private set; }
+    public Password Password { get; private set; }
+    
+    public DateTime CreatedAt { get; private set; }
+    public DateTime? UpdatedAt { get; private set; }
+    
+    public bool IsActive { get; private set; }
+    public ActivationToken? Token { get; private set; }
+
+    private User() { }
+
+    public static User Create(Name name, Name surname, Email email, Password password)
+    {
+        return new User
+        {
+            Name = name,
+            Surname = surname,
+            Email = email,
+            Password = password,
+            CreatedAt = DateTime.UtcNow,
+            IsActive = false
+        };
+    }
+
+    public void SetActivationKey(Guid activationKey)
+    {
+        if(IsActive)
+            throw new InvalidOperationException("Cannot set activation key while User is already active.");
+        Token = ActivationToken.Create(activationKey);
+    }
+
+    public void Activate()
+    {
+        IsActive = true;
+        Updated();
+        Token = null;
+    }
+    
+    private void Updated()
+    {
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

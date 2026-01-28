@@ -52,8 +52,8 @@ public class UserControllerTests(TestingWebAppFactory factory) : IClassFixture<T
         response.EnsureSuccessStatusCode();
 
         // Assert
-        var model = await response.Content.ReadFromJsonAsync<UserModel>();
-        Assert.Equal(_signUpCommand.Email, model?.Email);
+        var model = await response.Content.ReadFromJsonAsync<Session>();
+        Assert.Equal(_signUpCommand.Email, model?.Email.Value);
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class UserControllerTests(TestingWebAppFactory factory) : IClassFixture<T
         response.EnsureSuccessStatusCode();
 
         // Assert
-        var content = await response.Content.ReadFromJsonAsync<UserModel>();
-        Assert.Equal(signUpCommand.Email, content?.Email);
+        var content = await response.Content.ReadFromJsonAsync<Session>();
+        Assert.Equal(signUpCommand.Email, content?.Email.Value);
     }
 }

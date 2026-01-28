@@ -1,9 +1,9 @@
-﻿using GoodStuff.UserApi.Domain.Models.User;
+﻿using GoodStuff.UserApi.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace GoodStuff.UserApi.Infrastructure.DataAccess.Context;
 
 public class GoodStuffContext(DbContextOptions<GoodStuffContext> options) : DbContext(options)
 {
-    public DbSet<Users> User { get; set; }
+    public DbSet<User> User { get; set; }
 }
