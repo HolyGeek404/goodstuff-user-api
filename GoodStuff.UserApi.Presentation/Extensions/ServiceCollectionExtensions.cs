@@ -60,8 +60,7 @@ public static class ServiceCollectionExtensions
             else
             {
                 // Production DB
-                services.AddDbContext<GoodStuffContext>(options =>
-                    options.UseSqlServer(configuration.GetConnectionString("SqlDb")));
+                services.AddDbContext<GoodStuffContext>(options => options.UseSqlServer(configuration.GetConnectionString("SqlDb")));
             }
 
             services.AddSingleton(s => new CosmosClient(configuration.GetConnectionString("CosmosDB")));

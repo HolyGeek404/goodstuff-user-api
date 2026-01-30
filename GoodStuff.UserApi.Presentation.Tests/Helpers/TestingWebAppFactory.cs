@@ -12,6 +12,8 @@ public class TestingWebAppFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        Environment.SetEnvironmentVariable("DOTNET_ENVIRONMENT", "Test");
+
         builder.ConfigureServices(services =>
         {
             var descriptor = services.SingleOrDefault(d => d.ServiceType ==

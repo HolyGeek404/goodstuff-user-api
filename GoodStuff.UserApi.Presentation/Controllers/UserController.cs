@@ -2,10 +2,8 @@
 using GoodStuff.UserApi.Application.Features.Commands.SignOutCommand;
 using GoodStuff.UserApi.Application.Features.Commands.SignUp;
 using GoodStuff.UserApi.Application.Features.Queries.SignIn;
-using GoodStuff.UserApi.Application.Models;
 using GoodStuff.UserApi.Application.Services;
 using GoodStuff.UserApi.Application.Services.Interfaces;
-using GoodStuff.UserApi.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
