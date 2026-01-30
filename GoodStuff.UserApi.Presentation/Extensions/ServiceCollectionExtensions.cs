@@ -2,7 +2,7 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using GoodStuff.UserApi.Application.Features;
-using GoodStuff.UserApi.Application.Features.User.Validators.SignUp;
+using GoodStuff.UserApi.Application.Features.Validators.SignUp;
 using GoodStuff.UserApi.Application.Services;
 using GoodStuff.UserApi.Application.Services.Interfaces;
 using GoodStuff.UserApi.Infrastructure;

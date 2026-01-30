@@ -1,11 +1,11 @@
-﻿using GoodStuff.UserApi.Application.Features.User.Commands.AccountVerification;
-using GoodStuff.UserApi.Application.Features.User.Commands.SignOutCommand;
-using GoodStuff.UserApi.Application.Features.User.Commands.SignUp;
-using GoodStuff.UserApi.Application.Features.User.Queries.SignIn;
+﻿using GoodStuff.UserApi.Application.Features.Commands.AccountVerification;
+using GoodStuff.UserApi.Application.Features.Commands.SignOutCommand;
+using GoodStuff.UserApi.Application.Features.Commands.SignUp;
+using GoodStuff.UserApi.Application.Features.Queries.SignIn;
+using GoodStuff.UserApi.Application.Models;
 using GoodStuff.UserApi.Application.Services;
 using GoodStuff.UserApi.Application.Services.Interfaces;
-using GoodStuff.UserApi.Domain.Models.User;
-using GoodStuff.UserApi.Domain.ValueObjects;
+using GoodStuff.UserApi.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,18 +34,12 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
             if (result)
             {
                 Logs.LogSuccessfullyRegisteredNewUserEmailCalledByUnknown(logger, signUpCommand.Email, User.FindFirst("appid")?.Value ?? "Unknown");
-                var userModel = new Session
-                {
-                    Email = Email.Create(signUpCommand.Email),
-                    Name = Name.Create(signUpCommand.Name),
-                    Surname = Name.Create(signUpCommand.Surname),
-                };
-                return CreatedAtAction(nameof(SignIn), new { email = signUpCommand.Email }, userModel);
+                return CreatedAtAction(nameof(SignIn), new { email = signUpCommand.Email });
             }
         }
         catch (Exception e)
         {
-            Logs.LogAnErrorOccurredWhileSigningUp(logger, e);
+            logger.LogAnErrorOccurredWhileSigningUp(e);
             return StatusCode(500, "An error occurred while signing up.");
         }
 
@@ -60,28 +54,16 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
     {
         Logs.LogCalledSignupNameByUnknown(logger, nameof(SignUp), User.FindFirst("appid")?.Value ?? "Unknown");
 
-        if (string.IsNullOrEmpty(signInQuery.Email) || string.IsNullOrEmpty(signInQuery.Password))
+        if (!ModelState.IsValid)
         {
             Logs.LogCouldNotSignInBecauseEmailOrPasswordIsEmpty(logger);
             return BadRequest("Email or password is empty.");
         }
 
-        var user = await mediator.Send(signInQuery);
-
-        if (user == null) return Unauthorized();
-
-        var sessionId = sessionService.CreateSession(user);
-        var userModel = new Session
-        {
-            Email = user.Email,
-            Name = user.Name,
-            Surname = user.Surname,
-            Id = sessionId
-        };
-
-        Logs.LogSuccessfullySignedInUserEmailCalledSignupNameByUnknown(logger, signInQuery.Email, nameof(SignUp),
-            User.FindFirst("appid")?.Value ?? "Unknown");
-        return Ok(userModel);
+        var userSession = await mediator.Send(signInQuery);
+        
+        Logs.LogSuccessfullySignedInUserEmailCalledSignupNameByUnknown(logger, signInQuery.Email, nameof(SignUp), User.FindFirst("appid")?.Value ?? "Unknown");
+        return Ok(userSession);
     }
 
     [HttpPost]
@@ -99,7 +81,7 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
 
             Logs.LogSuccessfullySignedOutUserSessionId(logger, signOutCommand);
 
-            return Ok(true);
+            return Ok(result);
         }
         catch (Exception ex)
         {

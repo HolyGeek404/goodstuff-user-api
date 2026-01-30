@@ -2,7 +2,7 @@
 using GoodStuff.UserApi.Domain.ValueObjects;
 using MediatR;
 
-namespace GoodStuff.UserApi.Application.Features.User.Commands.SignUp;
+namespace GoodStuff.UserApi.Application.Features.Commands.SignUp;
 
 public class SignUpCommandHandler(IUserService userService) : IRequestHandler<SignUpCommand, bool>
 {

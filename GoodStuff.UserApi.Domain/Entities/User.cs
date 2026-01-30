@@ -14,7 +14,7 @@ public class User
     public DateTime? UpdatedAt { get; private set; }
     
     public bool IsActive { get; private set; }
-    public ActivationToken? Token { get; private set; }
+    public ActivationToken? ActivationKey { get; private set; }
 
     private User() { }
 
@@ -35,14 +35,14 @@ public class User
     {
         if(IsActive)
             throw new InvalidOperationException("Cannot set activation key while User is already active.");
-        Token = ActivationToken.Create(activationKey);
+        ActivationKey = ActivationToken.Create(activationKey);
     }
 
     public void Activate()
     {
         IsActive = true;
         Updated();
-        Token = null;
+        ActivationKey = null;
     }
     
     private void Updated()

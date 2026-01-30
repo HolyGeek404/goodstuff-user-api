@@ -1,7 +1,7 @@
 using System.Net;
+using GoodStuff.UserApi.Application.Models;
 using GoodStuff.UserApi.Application.Services;
 using GoodStuff.UserApi.Domain.Entities;
-using GoodStuff.UserApi.Domain.Models.User;
 using GoodStuff.UserApi.Domain.ValueObjects;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
@@ -70,14 +70,13 @@ public class UserSessionServiceTests
             .Returns(CreateHttpContext());
 
         // Act
-        var sessionId = _service.CreateSession(user);
+        var session = _service.CreateSession(user);
 
         // Assert
-        Assert.False(string.IsNullOrEmpty(sessionId));
+        Assert.False(string.IsNullOrEmpty(session.SessionId));
 
-        _cacheMock.Verify(
-            c => c.CreateEntry(It.Is<string>(k => k.Contains("user_session_"))),
-            Times.Once);
+        _cacheMock.Verify(c => c.CreateEntry(It.Is<string>(k => k.Contains("user_session_"))), Times.Once);
+        
     }
 
     [Fact]
@@ -86,28 +85,23 @@ public class UserSessionServiceTests
         // Arrange
         var userSession = new UserSession
         {
-            UserData = CreateTestUser(),
             IpAddress = "1.1.1.1",
-            LastActivity = DateTime.UtcNow.AddMinutes(-1)
+            LastActivity = DateTime.UtcNow.AddMinutes(-1),
+            Email = "test@example.com"
         };
 
-        _httpContextAccessorMock.Setup(x => x.HttpContext)
-            .Returns(CreateHttpContext());
+        _httpContextAccessorMock.Setup(x => x.HttpContext).Returns(CreateHttpContext());
 
         object? outValue = userSession;
 
-        _cacheMock
-            .Setup(x => x.TryGetValue(It.IsAny<object>(), out outValue))
-            .Returns(true);
+        _cacheMock.Setup(x => x.TryGetValue(It.IsAny<object>(), out outValue)).Returns(true);
 
         // Act
         var result = _service.GetUserSession();
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(
-            "test@example.com",
-            result.UserData.Email.Value);
+        Assert.Equal("test@example.com", result.Email);
     }
 
     [Fact]
@@ -122,20 +116,15 @@ public class UserSessionServiceTests
 
         object? outValue = session;
 
-        _cacheMock
-            .Setup(c => c.TryGetValue(It.IsAny<object>(), out outValue))
-            .Returns(true);
+        _cacheMock.Setup(c => c.TryGetValue(It.IsAny<object>(), out outValue)).Returns(true);
 
-        _httpContextAccessorMock
-            .Setup(a => a.HttpContext)
-            .Returns(CreateHttpContext());
+        _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(CreateHttpContext());
 
         // Act
         _service.Validate();
 
         // Assert
-        Assert.True(
-            (DateTime.UtcNow - session.LastActivity).TotalSeconds < 2);
+        Assert.True((DateTime.UtcNow - session.LastActivity).TotalSeconds < 2);
     }
 
     [Fact]
@@ -145,8 +134,6 @@ public class UserSessionServiceTests
         _service.ClearUserCachedData("abc123");
 
         // Assert
-        _cacheMock.Verify(
-            x => x.Remove("user_session_abc123"),
-            Times.Once);
+        _cacheMock.Verify(x => x.Remove("user_session_abc123"), Times.Once);
     }
 }

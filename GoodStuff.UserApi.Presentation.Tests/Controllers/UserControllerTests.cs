@@ -1,12 +1,13 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using GoodStuff.UserApi.Application.Features.User.Commands.AccountVerification;
-using GoodStuff.UserApi.Application.Features.User.Commands.SignUp;
-using GoodStuff.UserApi.Application.Features.User.Queries.SignIn;
-using GoodStuff.UserApi.Application.Services;
-using GoodStuff.UserApi.Domain.Models.User;
+using GoodStuff.UserApi.Application.Features.Commands.AccountVerification;
+using GoodStuff.UserApi.Application.Features.Commands.SignUp;
+using GoodStuff.UserApi.Application.Features.Queries.SignIn;
+using GoodStuff.UserApi.Application.Models;
+using GoodStuff.UserApi.Application.Services.Interfaces;
 using GoodStuff.UserApi.Presentation.Tests.Helpers;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 
 namespace GoodStuff.UserApi.Presentation.Tests.Controllers;
@@ -52,8 +53,8 @@ public class UserControllerTests(TestingWebAppFactory factory) : IClassFixture<T
         response.EnsureSuccessStatusCode();
 
         // Assert
-        var model = await response.Content.ReadFromJsonAsync<Session>();
-        Assert.Equal(_signUpCommand.Email, model?.Email.Value);
+        var model = await response.Content.ReadFromJsonAsync<UserSession>();
+        Assert.Equal(_signUpCommand.Email, model?.Email);
     }
 
     [Fact]
@@ -69,11 +70,15 @@ public class UserControllerTests(TestingWebAppFactory factory) : IClassFixture<T
 
         // Act
         var response = await _client.PostAsJsonAsync("/User/signin", badQuery);
-        var content = await response.Content.ReadAsStringAsync();
+        var content = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Equal("Email or password is empty.", content);
+        Assert.NotNull(content);
+
+        Assert.Equal(400, content!.Status);
+        Assert.True(content.Errors.ContainsKey("Email"));
+        Assert.NotEmpty(content.Errors["Email"]);
     }
 
     [Fact]
@@ -88,7 +93,7 @@ public class UserControllerTests(TestingWebAppFactory factory) : IClassFixture<T
         response.EnsureSuccessStatusCode();
 
         // Assert
-        var content = await response.Content.ReadFromJsonAsync<Session>();
-        Assert.Equal(signUpCommand.Email, content?.Email.Value);
+        var content = await response.Content.ReadFromJsonAsync<UserSession>();
+        Assert.Equal(signUpCommand.Email, content?.Email);
     }
 }

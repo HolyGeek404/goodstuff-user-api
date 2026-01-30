@@ -1,4 +1,4 @@
-using GoodStuff.UserApi.Application.Features.User.Commands.SignOutCommand;
+using GoodStuff.UserApi.Application.Features.Commands.SignOutCommand;
 using Microsoft.Extensions.Logging;
 
 namespace GoodStuff.UserApi.Application.Services;

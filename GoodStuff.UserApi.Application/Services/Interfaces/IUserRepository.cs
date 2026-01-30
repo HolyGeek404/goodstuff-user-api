@@ -1,10 +1,11 @@
 ﻿using GoodStuff.UserApi.Domain.Entities;
+using GoodStuff.UserApi.Domain.ValueObjects;
 
 namespace GoodStuff.UserApi.Application.Services.Interfaces;
 
 public interface IUserRepository
 {
     Task SignUpAsync(User user);
-    Task<User?> GetUserByEmailAsync(string email);
-    Task<bool> ActivateUserAsync(string email, Guid providedKey);
+    Task<User?> GetUserByEmailAsync(Email email);
+    Task<bool> ActivateUserAsync(Email email, ActivationToken providedKey);
 }

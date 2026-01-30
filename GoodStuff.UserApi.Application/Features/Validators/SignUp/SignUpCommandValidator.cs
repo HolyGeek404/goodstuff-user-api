@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
-using GoodStuff.UserApi.Application.Features.User.Commands.SignUp;
+using GoodStuff.UserApi.Application.Features.Commands.SignUp;
 
-namespace GoodStuff.UserApi.Application.Features.User.Validators.SignUp;
+namespace GoodStuff.UserApi.Application.Features.Validators.SignUp;
 
 public class SignUpCommandValidator : AbstractValidator<SignUpCommand>
 {

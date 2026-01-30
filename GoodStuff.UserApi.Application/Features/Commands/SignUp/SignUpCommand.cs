@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using MediatR;
 
-namespace GoodStuff.UserApi.Application.Features.User.Commands.SignUp;
+namespace GoodStuff.UserApi.Application.Features.Commands.SignUp;
 
 public record SignUpCommand : IRequest<bool>
 {

@@ -19,4 +19,8 @@
         <ProjectReference Include="..\GoodStuff.UserApi.Domain\GoodStuff.UserApi.Domain.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Features\User\" />
+    </ItemGroup>
+
 </Project>

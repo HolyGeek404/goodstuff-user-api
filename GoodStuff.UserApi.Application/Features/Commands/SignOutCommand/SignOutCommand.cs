@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace GoodStuff.UserApi.Application.Features.User.Commands.SignOutCommand;
+namespace GoodStuff.UserApi.Application.Features.Commands.SignOutCommand;
 
 public class SignOutCommand : IRequest<bool>
 {
