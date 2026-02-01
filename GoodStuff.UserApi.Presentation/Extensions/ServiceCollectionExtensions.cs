@@ -48,22 +48,9 @@ public static class ServiceCollectionExtensions
                 .AddMicrosoftIdentityWebApi(azureAd);
         }
 
-        public void AddDataBaseConfig(IConfigurationManager configuration, string? environment = null)
+        public void AddDataBaseConfig(IConfigurationManager configuration)
         {
-            if (environment == "Test")
-            {
-                // SQLite in-memory for integration tests
-                var connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
-                connection.Open(); // keep connection alive for lifetime
-                services.AddDbContext<GoodStuffContext>(options => options.UseSqlite(connection));
-            }
-            else
-            {
-                // Production DB
-                services.AddDbContext<GoodStuffContext>(options => options.UseSqlServer(configuration.GetConnectionString("SqlDb")));
-            }
-
-            services.AddSingleton(s => new CosmosClient(configuration.GetConnectionString("CosmosDB")));
+            services.AddDbContext<GoodStuffContext>(options => options.UseSqlServer(configuration.GetConnectionString("SqlDb")));
         }
 
         public void AddSwaggerConfig(IConfiguration configuration)

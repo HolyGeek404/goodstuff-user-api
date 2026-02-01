@@ -10,4 +10,5 @@ public interface IUserService
     Task<UserSession?> SignInAsync(Email email, Password password);
     Task<User?> GetUserByEmailAsync(Email email);
     Task<bool> ActivateUserAsync(Email email, ActivationToken providedKey);
+    Task RemoveUserAsync(Email email);
 }

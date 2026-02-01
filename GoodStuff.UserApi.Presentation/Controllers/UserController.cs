@@ -1,4 +1,5 @@
 ﻿using GoodStuff.UserApi.Application.Features.Commands.AccountVerification;
+using GoodStuff.UserApi.Application.Features.Commands.Delete;
 using GoodStuff.UserApi.Application.Features.Commands.SignOutCommand;
 using GoodStuff.UserApi.Application.Features.Commands.SignUp;
 using GoodStuff.UserApi.Application.Features.Queries.SignIn;
@@ -104,6 +105,24 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
         {
             Logs.LogErrorOccurredDuringVerificationForAccountAccount(logger, ex, accountVerificationCommand.Email);
             return StatusCode(500, "An error occurred while verifying the account.");
+        }
+    }
+
+    [HttpDelete]
+    [Route("delete")]
+    public async Task<IActionResult> Delete([FromQuery] string email)
+    {
+        if(string.IsNullOrWhiteSpace(email))
+            return BadRequest("Email cannot be null or empty.");
+        
+        try
+        {
+            await mediator.Send(new DeleteCommand { Email = email });
+            return NoContent();
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500, "An error occurred while deleting the account.");
         }
     }
 }

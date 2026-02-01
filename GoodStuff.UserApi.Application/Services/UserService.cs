@@ -30,7 +30,10 @@ public class UserService(
 
             var activationKey = guidProvider.Get();
             user.SetActivationKey(activationKey);
-
+            
+            var passwordHash = passwordService.HashPassword(user.Password.Value);
+            user.SetPasswordHash(passwordHash);
+            
             await userRepository.SignUpAsync(user);
             Logs.LogNewUserCreatedEmailEmailActivationKey(logger, user.Email.Value, user.ActivationKey!.Value);
 
@@ -113,5 +116,10 @@ public class UserService(
             Logs.LogErrorOccurredWhileActivatingUserEmailWithKeyKey(logger, ex, email.Value, providedKey.Value);
             throw;
         }
+    }
+
+    public async Task RemoveUserAsync(Email email)
+    {
+        await userRepository.RemoveUserAsync(email);
     }
 }

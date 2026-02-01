@@ -38,6 +38,13 @@ public class User
         ActivationKey = ActivationToken.Create(activationKey);
     }
 
+    public void SetPasswordHash(string passwordHash)
+    {
+        if (IsActive)
+            throw new InvalidOperationException("Cannot set password while User is already active.");
+        Password = new Password(passwordHash);
+    }
+
     public void Activate()
     {
         IsActive = true;

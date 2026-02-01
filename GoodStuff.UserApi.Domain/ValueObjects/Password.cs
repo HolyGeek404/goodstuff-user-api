@@ -2,11 +2,9 @@ using System.Text.RegularExpressions;
 
 namespace GoodStuff.UserApi.Domain.ValueObjects;
 
-public sealed partial record Password
+public sealed partial record Password(string Value)
 {
     private static readonly Regex Pattern = PasswordRegex();
-    public string Value { get; }
-    private Password(string value) => Value = value;
 
     public static Password Create(string value)
     {
