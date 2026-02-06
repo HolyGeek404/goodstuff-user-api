@@ -21,7 +21,7 @@ public class TestAuthHandler(
             new Claim(ClaimTypes.Name, "TestUser"),
             new Claim(ClaimTypes.Role, "SignUp"),
             new Claim(ClaimTypes.Role, "SignIn"),
-            new Claim(ClaimTypes.Role, "SignOut")
+            new Claim(ClaimTypes.Role, "Delete")
         };
 
         var identity = new ClaimsIdentity(claims, "Test");

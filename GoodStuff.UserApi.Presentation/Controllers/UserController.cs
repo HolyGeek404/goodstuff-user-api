@@ -1,10 +1,10 @@
-﻿using GoodStuff.UserApi.Application.Features.User.Commands.AccountVerification;
-using GoodStuff.UserApi.Application.Features.User.Commands.SignOutCommand;
-using GoodStuff.UserApi.Application.Features.User.Commands.SignUp;
-using GoodStuff.UserApi.Application.Features.User.Queries.SignIn;
+﻿using GoodStuff.UserApi.Application.Features.Commands.AccountVerification;
+using GoodStuff.UserApi.Application.Features.Commands.Delete;
+using GoodStuff.UserApi.Application.Features.Commands.SignOutCommand;
+using GoodStuff.UserApi.Application.Features.Commands.SignUp;
+using GoodStuff.UserApi.Application.Features.Queries.SignIn;
 using GoodStuff.UserApi.Application.Services;
 using GoodStuff.UserApi.Application.Services.Interfaces;
-using GoodStuff.UserApi.Domain.Models.User;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,19 +22,25 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
     public async Task<IActionResult> SignUp([FromBody] SignUpCommand signUpCommand)
     {
         Logs.LogCalledSignupNameByUnknown(logger, nameof(SignUp), User.FindFirst("appid")?.Value ?? "Unknown");
-
-        var result = await mediator.Send(signUpCommand);
-        if (result)
+        if (!ModelState.IsValid)
         {
-            Logs.LogSuccessfullyRegisteredNewUserEmailCalledByUnknown(logger, signUpCommand.Email,
-                User.FindFirst("appid")?.Value ?? "Unknown");
-            var userModel = new UserModel
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            var result = await mediator.Send(signUpCommand);
+            if (result)
             {
-                Email = signUpCommand.Email,
-                Name = signUpCommand.Name,
-                Surname = signUpCommand.Surname
-            };
-            return CreatedAtAction(nameof(SignIn), new { email = signUpCommand.Email }, userModel);
+                Logs.LogSuccessfullyRegisteredNewUserEmailCalledByUnknown(logger, signUpCommand.Email,
+                    User.FindFirst("appid")?.Value ?? "Unknown");
+                return CreatedAtAction(nameof(SignIn), new { email = signUpCommand.Email });
+            }
+        }
+        catch (Exception e)
+        {
+            logger.LogAnErrorOccurredWhileSigningUp(e);
+            return StatusCode(500, "An error occurred while signing up.");
         }
 
         Logs.LogCouldNotRegisterUserEmailCalledByUnknown(logger, signUpCommand.Email,
@@ -49,28 +55,17 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
     {
         Logs.LogCalledSignupNameByUnknown(logger, nameof(SignUp), User.FindFirst("appid")?.Value ?? "Unknown");
 
-        if (string.IsNullOrEmpty(signInQuery.Email) || string.IsNullOrEmpty(signInQuery.Password))
+        if (!ModelState.IsValid)
         {
             Logs.LogCouldNotSignInBecauseEmailOrPasswordIsEmpty(logger);
             return BadRequest("Email or password is empty.");
         }
 
-        var user = await mediator.Send(signInQuery);
-
-        if (user == null) return Unauthorized();
-
-        var sessionId = sessionService.CreateSession(user);
-        var userModel = new UserModel
-        {
-            Email = user.Email,
-            Name = user.Name,
-            Surname = user.Surname,
-            SessionId = sessionId
-        };
+        var userSession = await mediator.Send(signInQuery);
 
         Logs.LogSuccessfullySignedInUserEmailCalledSignupNameByUnknown(logger, signInQuery.Email, nameof(SignUp),
             User.FindFirst("appid")?.Value ?? "Unknown");
-        return Ok(userModel);
+        return Ok(userSession);
     }
 
     [HttpPost]
@@ -88,7 +83,7 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
 
             Logs.LogSuccessfullySignedOutUserSessionId(logger, signOutCommand);
 
-            return Ok(true);
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -99,7 +94,8 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
 
     [HttpPost]
     [Route("accountverification")]
-    public async Task<IActionResult> AccountVerification([FromBody] AccountVerificationCommand accountVerificationCommand)
+    public async Task<IActionResult> AccountVerification(
+        [FromBody] AccountVerificationCommand accountVerificationCommand)
     {
         try
         {
@@ -113,6 +109,24 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
         {
             Logs.LogErrorOccurredDuringVerificationForAccountAccount(logger, ex, accountVerificationCommand.Email);
             return StatusCode(500, "An error occurred while verifying the account.");
+        }
+    }
+
+    [HttpDelete]
+    [Route("delete")]
+    public async Task<IActionResult> Delete([FromQuery] string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return BadRequest("Email cannot be null or empty.");
+
+        try
+        {
+            await mediator.Send(new DeleteCommand { Email = email });
+            return NoContent();
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500, "An error occurred while deleting the account.");
         }
     }
 }

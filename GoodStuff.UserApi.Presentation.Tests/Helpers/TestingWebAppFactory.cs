@@ -1,3 +1,4 @@
+using GoodStuff.UserApi.Application.Services.Interfaces;
 using GoodStuff.UserApi.Infrastructure.DataAccess.Context;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace GoodStuff.UserApi.Presentation.Tests.Helpers;
 
@@ -14,12 +16,12 @@ public class TestingWebAppFactory : WebApplicationFactory<Program>
     {
         builder.ConfigureServices(services =>
         {
-            var descriptor = services.SingleOrDefault(d => d.ServiceType ==
-                                                           typeof(DbContextOptions<GoodStuffContext>));
+            var guid = new Guid("a0b25888-3f42-489a-80b5-f262effabd25");
 
-            if (descriptor != null)
-                services.Remove(descriptor);
+            var guidProviderMock = new Mock<IGuidProvider>();
+            guidProviderMock.Setup(x => x.Get()).Returns(guid);
 
+            services.AddSingleton(guidProviderMock.Object);
             services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = "Test";
@@ -33,15 +35,6 @@ public class TestingWebAppFactory : WebApplicationFactory<Program>
                 app.UseAuthentication();
                 app.UseAuthorization();
             });
-            services.AddDbContext<GoodStuffContext>(options =>
-            {
-                options.UseInMemoryDatabase("InMemoryEmployeeTest");
-            });
-
-            var sp = services.BuildServiceProvider();
-            using var scope = sp.CreateScope();
-            using var appContext = scope.ServiceProvider.GetRequiredService<GoodStuffContext>();
-            appContext.Database.EnsureCreated();
         });
     }
 }

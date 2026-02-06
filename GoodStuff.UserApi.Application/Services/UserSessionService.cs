@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
+using GoodStuff.UserApi.Application.Models;
 using GoodStuff.UserApi.Application.Services.Interfaces;
-using GoodStuff.UserApi.Domain.Models.User;
+using GoodStuff.UserApi.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -14,7 +15,7 @@ public class UserSessionService(
 {
     private const int SessionTimeoutMinutes = 30;
 
-    public string CreateSession(Users user)
+    public UserSession CreateSession(User user)
     {
         try
         {
@@ -27,14 +28,16 @@ public class UserSessionService(
             };
             var userSession = new UserSession
             {
-                UserData = user,
+                Email = user.Email.Value,
+                UserId = user.Id,
+                SessionId = sessionId,
                 LastActivity = DateTime.UtcNow,
                 LoginTime = DateTime.UtcNow,
-                IpAddress = GetClientIpAddress()
+                IpAddress = GetClientIpAddress(),
             };
 
             cache.Set(GetCacheKey(sessionId), userSession, cacheOptions);
-            return sessionId;
+            return userSession;
         }
         catch (Exception ex)
         {
@@ -43,11 +46,11 @@ public class UserSessionService(
         }
     }
 
-    public UserSession? GetUserSession()
+    public UserSession? GetUserSession(string? session = null)
     {
         try
         {
-            var sessionId = GetSessionIdFromCookie();
+            var sessionId = session == null ? GetSessionIdFromCookie() : null;
             if (sessionId == null) return null;
 
             var cachedKey = GetCacheKey(sessionId);
@@ -71,22 +74,22 @@ public class UserSessionService(
 
             var sessionAge = DateTime.UtcNow - session.LastActivity;
             var sessionId = GetSessionIdFromCookie();
-            
+
             if (sessionAge.TotalMinutes > SessionTimeoutMinutes)
             {
                 if (sessionId != null) ClearUserCachedData(sessionId);
                 return false;
             }
+
             session.LastActivity = DateTime.UtcNow;
 
             var currentIp = GetClientIpAddress();
-            if (currentIp == session.IpAddress) 
+            if (currentIp == session.IpAddress)
                 return true;
-        
+
             sessionId = GetSessionIdFromCookie();
             if (sessionId != null) ClearUserCachedData(sessionId);
             return false;
-            
         }
         catch (Exception ex)
         {

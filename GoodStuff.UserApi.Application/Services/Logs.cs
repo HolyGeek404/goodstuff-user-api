@@ -1,4 +1,4 @@
-using GoodStuff.UserApi.Application.Features.User.Commands.SignOutCommand;
+using GoodStuff.UserApi.Application.Features.Commands.SignOutCommand;
 using Microsoft.Extensions.Logging;
 
 namespace GoodStuff.UserApi.Application.Services;
@@ -105,4 +105,7 @@ public static partial class Logs
 
     [LoggerMessage(LogLevel.Warning, "User with email {email} is not active")]
     public static partial void LogUserWithEmailEmailIsNotActive(this ILogger<UserService> logger, string email);
+
+    [LoggerMessage(LogLevel.Error, "An error occurred while signing up.")]
+    public static partial void LogAnErrorOccurredWhileSigningUp(this ILogger logger, Exception ex);
 }

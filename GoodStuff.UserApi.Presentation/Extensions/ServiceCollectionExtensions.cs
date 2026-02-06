@@ -2,7 +2,7 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using GoodStuff.UserApi.Application.Features;
-using GoodStuff.UserApi.Application.Features.User.Validators.SignUp;
+using GoodStuff.UserApi.Application.Features.Validators.SignUp;
 using GoodStuff.UserApi.Application.Services;
 using GoodStuff.UserApi.Application.Services.Interfaces;
 using GoodStuff.UserApi.Infrastructure;
@@ -23,7 +23,7 @@ public static class ServiceCollectionExtensions
     {
         public void AddServices()
         {
-            services.AddScoped<IUserDao, UserDao>();
+            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IGuidProvider, GuidProvider>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IPasswordService, PasswordService>();
@@ -48,23 +48,10 @@ public static class ServiceCollectionExtensions
                 .AddMicrosoftIdentityWebApi(azureAd);
         }
 
-        public void AddDataBaseConfig(IConfigurationManager configuration, string? environment = null)
+        public void AddDataBaseConfig(IConfigurationManager configuration)
         {
-            if (environment == "Test")
-            {
-                // SQLite in-memory for integration tests
-                var connection = new Microsoft.Data.Sqlite.SqliteConnection("DataSource=:memory:");
-                connection.Open(); // keep connection alive for lifetime
-                services.AddDbContext<GoodStuffContext>(options => options.UseSqlite(connection));
-            }
-            else
-            {
-                // Production DB
-                services.AddDbContext<GoodStuffContext>(options =>
-                    options.UseSqlServer(configuration.GetConnectionString("SqlDb")));
-            }
-
-            services.AddSingleton(s => new CosmosClient(configuration.GetConnectionString("CosmosDB")));
+            services.AddDbContext<GoodStuffContext>(options =>
+                options.UseSqlServer(configuration.GetConnectionString("SqlDb")));
         }
 
         public void AddSwaggerConfig(IConfiguration configuration)

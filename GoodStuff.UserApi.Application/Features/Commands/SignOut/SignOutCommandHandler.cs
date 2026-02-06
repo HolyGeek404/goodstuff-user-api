@@ -1,7 +1,7 @@
 using GoodStuff.UserApi.Application.Services.Interfaces;
 using MediatR;
 
-namespace GoodStuff.UserApi.Application.Features.User.Commands.SignOutCommand;
+namespace GoodStuff.UserApi.Application.Features.Commands.SignOutCommand;
 
 public class SignOutCommandHandler(IUserSessionService sessionService) : IRequestHandler<SignOutCommand, bool>
 {
