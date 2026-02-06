@@ -29,7 +29,7 @@ public class UserSessionService(
             var userSession = new UserSession
             {
                 Email = user.Email.Value,
-                UserId =  user.Id,
+                UserId = user.Id,
                 SessionId = sessionId,
                 LastActivity = DateTime.UtcNow,
                 LoginTime = DateTime.UtcNow,
@@ -74,22 +74,22 @@ public class UserSessionService(
 
             var sessionAge = DateTime.UtcNow - session.LastActivity;
             var sessionId = GetSessionIdFromCookie();
-            
+
             if (sessionAge.TotalMinutes > SessionTimeoutMinutes)
             {
                 if (sessionId != null) ClearUserCachedData(sessionId);
                 return false;
             }
+
             session.LastActivity = DateTime.UtcNow;
 
             var currentIp = GetClientIpAddress();
-            if (currentIp == session.IpAddress) 
+            if (currentIp == session.IpAddress)
                 return true;
-        
+
             sessionId = GetSessionIdFromCookie();
             if (sessionId != null) ClearUserCachedData(sessionId);
             return false;
-            
         }
         catch (Exception ex)
         {

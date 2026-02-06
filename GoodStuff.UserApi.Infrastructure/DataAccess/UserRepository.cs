@@ -51,9 +51,8 @@ public class UserRepository(GoodStuffContext context, ILogger<UserRepository> lo
         var user = context.User.FirstOrDefault(u => u.Email.Value == email.Value);
         if (user == null)
             throw new ArgumentException("User already removed");
-        
+
         context.User.Remove(user);
         return context.SaveChangesAsync();
-
     }
 }

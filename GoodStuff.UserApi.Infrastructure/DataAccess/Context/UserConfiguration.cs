@@ -11,7 +11,7 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.ToTable("Users");
 
         builder.HasKey(x => x.Id);
-        
+
         builder.OwnsOne(x => x.Name, n =>
         {
             n.Property(p => p.Value)

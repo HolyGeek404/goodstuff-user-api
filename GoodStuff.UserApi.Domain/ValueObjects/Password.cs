@@ -10,7 +10,7 @@ public sealed partial record Password(string Value)
     {
         if (string.IsNullOrWhiteSpace(value) || !Pattern.IsMatch(value))
             throw new ArgumentNullException(nameof(value));
-        
+
         var valueTrim = value.Trim();
         return new Password(valueTrim);
     }

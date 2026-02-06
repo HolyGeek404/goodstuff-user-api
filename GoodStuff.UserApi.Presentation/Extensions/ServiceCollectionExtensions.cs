@@ -50,7 +50,8 @@ public static class ServiceCollectionExtensions
 
         public void AddDataBaseConfig(IConfigurationManager configuration)
         {
-            services.AddDbContext<GoodStuffContext>(options => options.UseSqlServer(configuration.GetConnectionString("SqlDb")));
+            services.AddDbContext<GoodStuffContext>(options =>
+                options.UseSqlServer(configuration.GetConnectionString("SqlDb")));
         }
 
         public void AddSwaggerConfig(IConfiguration configuration)

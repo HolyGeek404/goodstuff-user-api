@@ -11,7 +11,7 @@ public class SignInQueryHandler(IUserService userService) : IRequestHandler<Sign
     {
         var email = Email.Create(request.Email);
         var password = Password.Create(request.Password);
-        
+
         return userService.SignInAsync(email, password);
     }
 }

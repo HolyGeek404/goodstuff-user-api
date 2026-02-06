@@ -26,13 +26,14 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
         {
             return BadRequest(ModelState);
         }
-        
+
         try
         {
             var result = await mediator.Send(signUpCommand);
             if (result)
             {
-                Logs.LogSuccessfullyRegisteredNewUserEmailCalledByUnknown(logger, signUpCommand.Email, User.FindFirst("appid")?.Value ?? "Unknown");
+                Logs.LogSuccessfullyRegisteredNewUserEmailCalledByUnknown(logger, signUpCommand.Email,
+                    User.FindFirst("appid")?.Value ?? "Unknown");
                 return CreatedAtAction(nameof(SignIn), new { email = signUpCommand.Email });
             }
         }
@@ -42,7 +43,8 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
             return StatusCode(500, "An error occurred while signing up.");
         }
 
-        Logs.LogCouldNotRegisterUserEmailCalledByUnknown(logger, signUpCommand.Email, User.FindFirst("appid")?.Value ?? "Unknown");
+        Logs.LogCouldNotRegisterUserEmailCalledByUnknown(logger, signUpCommand.Email,
+            User.FindFirst("appid")?.Value ?? "Unknown");
         return BadRequest();
     }
 
@@ -60,8 +62,9 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
         }
 
         var userSession = await mediator.Send(signInQuery);
-        
-        Logs.LogSuccessfullySignedInUserEmailCalledSignupNameByUnknown(logger, signInQuery.Email, nameof(SignUp), User.FindFirst("appid")?.Value ?? "Unknown");
+
+        Logs.LogSuccessfullySignedInUserEmailCalledSignupNameByUnknown(logger, signInQuery.Email, nameof(SignUp),
+            User.FindFirst("appid")?.Value ?? "Unknown");
         return Ok(userSession);
     }
 
@@ -91,7 +94,8 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
 
     [HttpPost]
     [Route("accountverification")]
-    public async Task<IActionResult> AccountVerification([FromBody] AccountVerificationCommand accountVerificationCommand)
+    public async Task<IActionResult> AccountVerification(
+        [FromBody] AccountVerificationCommand accountVerificationCommand)
     {
         try
         {
@@ -112,9 +116,9 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
     [Route("delete")]
     public async Task<IActionResult> Delete([FromQuery] string email)
     {
-        if(string.IsNullOrWhiteSpace(email))
+        if (string.IsNullOrWhiteSpace(email))
             return BadRequest("Email cannot be null or empty.");
-        
+
         try
         {
             await mediator.Send(new DeleteCommand { Email = email });

@@ -11,7 +11,7 @@ public class AccountVerificationCommandHandler(IUserService userService)
     {
         var email = Email.Create(request.Email);
         var token = ActivationToken.Create(request.VerificationKey);
-        
+
         var result = await userService.ActivateUserAsync(email, token);
         return result;
     }

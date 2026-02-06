@@ -76,7 +76,6 @@ public class UserSessionServiceTests
         Assert.False(string.IsNullOrEmpty(session.SessionId));
 
         _cacheMock.Verify(c => c.CreateEntry(It.Is<string>(k => k.Contains("user_session_"))), Times.Once);
-        
     }
 
     [Fact]

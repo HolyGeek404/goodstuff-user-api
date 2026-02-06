@@ -30,10 +30,10 @@ public class UserService(
 
             var activationKey = guidProvider.Get();
             user.SetActivationKey(activationKey);
-            
+
             var passwordHash = passwordService.HashPassword(user.Password.Value);
             user.SetPasswordHash(passwordHash);
-            
+
             await userRepository.SignUpAsync(user);
             Logs.LogNewUserCreatedEmailEmailActivationKey(logger, user.Email.Value, user.ActivationKey!.Value);
 
@@ -57,7 +57,7 @@ public class UserService(
 
             var user = await userRepository.GetUserByEmailAsync(email);
             if (user == null) return null;
-            
+
             if (!passwordService.VerifyPassword(password.Value, user.Password.Value))
             {
                 if (!user.IsActive)
@@ -69,10 +69,10 @@ public class UserService(
                 Logs.LogInvalidCredentialsForEmail(logger, email.Value);
                 return null;
             }
-            
-            var session = userSessionService.CreateSession(user); 
+
+            var session = userSessionService.CreateSession(user);
             Logs.LogUserEmailSuccessfullySignedIn(logger, email.Value);
-            
+
             return session;
         }
         catch (Exception ex)

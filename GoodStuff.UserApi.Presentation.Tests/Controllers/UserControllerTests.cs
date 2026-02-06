@@ -57,7 +57,7 @@ public class UserControllerTests(TestingWebAppFactory factory) : IClassFixture<T
         var model = await response.Content.ReadFromJsonAsync<UserSession>();
 
         await _client.DeleteAsync($"/User/delete?email={_signUpCommand.Email}");
-        
+
         Assert.Equal(_signUpCommand.Email, model?.Email);
     }
 

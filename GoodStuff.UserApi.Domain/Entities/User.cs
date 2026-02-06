@@ -9,14 +9,16 @@ public class User
     public Name Surname { get; private set; }
     public Email Email { get; private set; }
     public Password Password { get; private set; }
-    
+
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
-    
+
     public bool IsActive { get; private set; }
     public ActivationToken? ActivationKey { get; private set; }
 
-    private User() { }
+    private User()
+    {
+    }
 
     public static User Create(Name name, Name surname, Email email, Password password)
     {
@@ -33,7 +35,7 @@ public class User
 
     public void SetActivationKey(Guid activationKey)
     {
-        if(IsActive)
+        if (IsActive)
             throw new InvalidOperationException("Cannot set activation key while User is already active.");
         ActivationKey = ActivationToken.Create(activationKey);
     }
@@ -51,7 +53,7 @@ public class User
         Updated();
         ActivationKey = null;
     }
-    
+
     private void Updated()
     {
         UpdatedAt = DateTime.UtcNow;
