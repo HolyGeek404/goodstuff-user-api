@@ -1,4 +1,6 @@
-﻿using Azure.Identity;
+﻿
+using Azure.Core;
+using Azure.Identity;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using GoodStuff.UserApi.Application.Features;
@@ -44,8 +46,7 @@ public static class ServiceCollectionExtensions
             var azureAd = configuration.GetSection("AzureAd");
 
             configuration.AddAzureKeyVault(new Uri(azureAd["KvUrl"]!), new DefaultAzureCredential());
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddMicrosoftIdentityWebApi(azureAd);
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddMicrosoftIdentityWebApi(azureAd);
         }
 
         public void AddDataBaseConfig(IConfigurationManager configuration)
