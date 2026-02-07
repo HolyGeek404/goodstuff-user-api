@@ -4,7 +4,6 @@ using GoodStuff.UserApi.Application.Features.Commands.SignOutCommand;
 using GoodStuff.UserApi.Application.Features.Commands.SignUp;
 using GoodStuff.UserApi.Application.Features.Queries.SignIn;
 using GoodStuff.UserApi.Application.Services;
-using GoodStuff.UserApi.Application.Services.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,11 +12,9 @@ namespace GoodStuff.UserApi.Presentation.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class UserController(IMediator mediator, ILogger<UserController> logger, IUserSessionService sessionService)
-    : ControllerBase
+public class UserController(IMediator mediator, ILogger<UserController> logger) : ControllerBase
 {
     [HttpPost]
-    [Authorize(Roles = "SignUp")]
     [Route("signup")]
     public async Task<IActionResult> SignUp([FromBody] SignUpCommand signUpCommand)
     {
@@ -49,7 +46,6 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
     }
 
     [HttpPost]
-    [Authorize(Roles = "SignIn")]
     [Route("signin")]
     public async Task<IActionResult> SignIn([FromBody] SignInQuery signInQuery)
     {
@@ -61,11 +57,24 @@ public class UserController(IMediator mediator, ILogger<UserController> logger, 
             return BadRequest("Email or password is empty.");
         }
 
-        var userSession = await mediator.Send(signInQuery);
+        var token = await mediator.Send(signInQuery);
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return Unauthorized();
+        }
+
+        Response.Cookies.Append("access_token", token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Path = "/",
+            MaxAge = TimeSpan.FromHours(1)
+        });
 
         Logs.LogSuccessfullySignedInUserEmailCalledSignupNameByUnknown(logger, signInQuery.Email, nameof(SignUp),
             User.FindFirst("appid")?.Value ?? "Unknown");
-        return Ok(userSession);
+        return Ok();
     }
 
     [HttpPost]

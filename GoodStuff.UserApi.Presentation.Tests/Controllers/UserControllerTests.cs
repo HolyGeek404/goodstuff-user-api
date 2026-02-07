@@ -1,11 +1,11 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Linq;
 using GoodStuff.UserApi.Application.Features.Commands.AccountVerification;
 using GoodStuff.UserApi.Application.Features.Commands.Delete;
 using GoodStuff.UserApi.Application.Features.Commands.SignUp;
 using GoodStuff.UserApi.Application.Features.Queries.SignIn;
-using GoodStuff.UserApi.Application.Models;
 using GoodStuff.UserApi.Application.Services.Interfaces;
 using GoodStuff.UserApi.Presentation.Tests.Helpers;
 using Microsoft.AspNetCore.Mvc;
@@ -26,7 +26,7 @@ public class UserControllerTests(TestingWebAppFactory factory) : IClassFixture<T
     };
 
     [Fact]
-    public async Task SignIn_Should_Succeed_And_Return_SessionId()
+    public async Task SignIn_Should_Succeed_And_Return_Token()
     {
         // Arrange
         var guidProvider = new Mock<IGuidProvider>();
@@ -54,11 +54,17 @@ public class UserControllerTests(TestingWebAppFactory factory) : IClassFixture<T
         response.EnsureSuccessStatusCode();
 
         // Assert
-        var model = await response.Content.ReadFromJsonAsync<UserSession>();
+        var setCookie = response.Headers.TryGetValues("Set-Cookie", out var values)
+            ? values.FirstOrDefault()
+            : null;
 
         await _client.DeleteAsync($"/User/delete?email={_signUpCommand.Email}");
 
-        Assert.Equal(_signUpCommand.Email, model?.Email);
+        Assert.False(string.IsNullOrWhiteSpace(setCookie));
+        Assert.Contains("access_token=", setCookie!);
+        Assert.Contains("HttpOnly", setCookie);
+        Assert.Contains("Secure", setCookie);
+        Assert.Contains("SameSite=Strict", setCookie);
     }
 
     [Fact]

@@ -1,8 +1,12 @@
-﻿using GoodStuff.UserApi.Application.Models;
-using GoodStuff.UserApi.Application.Services.Interfaces;
+﻿using GoodStuff.UserApi.Application.Services.Interfaces;
 using GoodStuff.UserApi.Domain.Entities;
 using GoodStuff.UserApi.Domain.ValueObjects;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace GoodStuff.UserApi.Application.Services;
 
@@ -11,7 +15,7 @@ public class UserService(
     IEmailNotificationFunctionClient emailNotificationFunctionClient,
     IPasswordService passwordService,
     IGuidProvider guidProvider,
-    IUserSessionService userSessionService,
+    IConfiguration configuration,
     ILogger<UserService> logger) : IUserService
 {
     public async Task<bool> SignUpAsync(User user)
@@ -49,7 +53,7 @@ public class UserService(
         }
     }
 
-    public async Task<UserSession?> SignInAsync(Email email, Password password)
+    public async Task<string?> SignInAsync(Email email, Password password)
     {
         try
         {
@@ -70,10 +74,10 @@ public class UserService(
                 return null;
             }
 
-            var session = userSessionService.CreateSession(user);
+            var token = CreateToken(user);
             Logs.LogUserEmailSuccessfullySignedIn(logger, email.Value);
 
-            return session;
+            return token;
         }
         catch (Exception ex)
         {
@@ -121,5 +125,33 @@ public class UserService(
     public async Task RemoveUserAsync(Email email)
     {
         await userRepository.RemoveUserAsync(email);
+    }
+
+    private string CreateToken(User user)
+    {
+        var keyValue = configuration["Jwt:Key"];
+        if (string.IsNullOrWhiteSpace(keyValue))
+            throw new InvalidOperationException("JWT signing key is not configured.");
+
+        var issuer = configuration["Jwt:Issuer"] ?? "goodstuff-user-api";
+        var audience = configuration["Jwt:Audience"] ?? "goodstuff";
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyValue));
+
+        var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: audience,
+            claims:
+            [
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email.Value),
+                new Claim(ClaimTypes.Role, "SignOut")
+            ],
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: new SigningCredentials(
+                key,
+                SecurityAlgorithms.HmacSha256)
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
