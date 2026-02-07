@@ -58,10 +58,23 @@ public class UserController(IMediator mediator, ILogger<UserController> logger) 
         }
 
         var token = await mediator.Send(signInQuery);
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return Unauthorized();
+        }
+
+        Response.Cookies.Append("access_token", token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Path = "/",
+            MaxAge = TimeSpan.FromHours(1)
+        });
 
         Logs.LogSuccessfullySignedInUserEmailCalledSignupNameByUnknown(logger, signInQuery.Email, nameof(SignUp),
             User.FindFirst("appid")?.Value ?? "Unknown");
-        return Ok(token);
+        return Ok();
     }
 
     [HttpPost]
